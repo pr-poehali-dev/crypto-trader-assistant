@@ -56,7 +56,7 @@ const Advantages = () => {
     <section className="py-20 bg-gradient-to-b from-muted/50 to-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-[#ffffff]">
             Преимущества CryptoTrader
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
