@@ -126,8 +126,7 @@ const ChartsAnalytics = () => {
 
             <div className="glass-card p-6">
               <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <Icon name="Target" className="mr-2 text-crypto-neon-green" />
-                Торговые сигналы
+                Торговые сигналы (В разработке)
               </h3>
 
               <div className="space-y-3">
