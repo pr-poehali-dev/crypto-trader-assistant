@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { useCryptoData } from "@/hooks/useCryptoData";
 import Icon from "@/components/ui/icon";
+import { Button } from "@/components/ui/button";
 
 interface CryptoChartProps {
   coinId: string;
