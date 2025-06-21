@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,31 +13,53 @@ import {
 import { Separator } from "@/components/ui/separator";
 import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userName, setUserName] = useState(
-    localStorage.getItem("user_name") || "",
-  );
-  const [email, setEmail] = useState(
-    localStorage.getItem("user_email") || "trader@example.com",
-  );
+  const { user } = useAuth();
+  const [userName, setUserName] = useState(user?.user_metadata?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
-    localStorage.setItem("user_name", userName);
-    localStorage.setItem("user_email", email);
-    setIsEditing(false);
-    toast({
-      title: "Профиль обновлен",
-      description: "Ваши данные успешно сохранены",
-    });
+  useEffect(() => {
+    if (user) {
+      setUserName(user.user_metadata?.name || "");
+      setEmail(user.email || "");
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { name: userName },
+      });
+
+      if (error) throw error;
+
+      setIsEditing(false);
+      toast({
+        title: "Профиль обновлен",
+        description: "Ваши данные успешно сохранены",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить профиль",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    setUserName(localStorage.getItem("user_name") || "");
-    setEmail(localStorage.getItem("user_email") || "trader@example.com");
+    setUserName(user?.user_metadata?.name || "");
+    setEmail(user?.email || "");
     setIsEditing(false);
   };
 
@@ -131,10 +153,15 @@ const Profile = () => {
               <div className="flex space-x-2 pt-4">
                 <Button
                   onClick={handleSave}
+                  disabled={loading}
                   className="bg-crypto-neon-green/20 hover:bg-crypto-neon-green/30 text-crypto-neon-green"
                 >
-                  <Icon name="Check" className="mr-2" size={16} />
-                  Сохранить
+                  <Icon
+                    name={loading ? "Loader2" : "Check"}
+                    className="mr-2"
+                    size={16}
+                  />
+                  {loading ? "Сохранение..." : "Сохранить"}
                 </Button>
                 <Button
                   onClick={handleCancel}
