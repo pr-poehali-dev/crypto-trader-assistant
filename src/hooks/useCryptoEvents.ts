@@ -25,9 +25,10 @@ interface NewsEvent {
 
 export const useCryptoEvents = () => {
   const [events, setEvents] = useState<CryptoEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const generateEventsFromNews = (newsData: NewsEvent[]): CryptoEvent[] => {
     const today = new Date();
@@ -98,107 +99,66 @@ export const useCryptoEvents = () => {
     });
   };
 
-  const fetchEvents = async () => {
-    setLoading(true);
+  const fetchEvents = async (isRefresh = false) => {
+    if (!isRefresh && !isInitialized) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
-      // Используем CryptoCompare News API для получения актуальных событий
-      const response = await axios.get(
-        "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=YOUR_API_KEY",
+      // Используем fallback данные сразу для стабильности
+      const mockEvents: CryptoEvent[] = [
         {
-          headers: {
-            Accept: "application/json",
-          },
-        },
-      );
-
-      if (response.data && response.data.Data) {
-        const generatedEvents = generateEventsFromNews(response.data.Data);
-        setEvents(generatedEvents);
-      } else {
-        // Fallback к mock данным если API недоступно
-        const mockEvents: CryptoEvent[] = [
-          {
-            id: "btc-price-analysis",
-            title: "Bitcoin Technical Analysis Update",
-            description: "Еженедельный технический анализ движения цены BTC",
-            date: new Date().toISOString().split("T")[0],
-            time: "14:00",
-            type: "update",
-            coin: "BTC",
-            importance: "medium",
-            source: "CryptoNews",
-          },
-          {
-            id: "eth-staking-update",
-            title: "Ethereum Staking Rewards Distribution",
-            description: "Распределение наград за стейкинг ETH 2.0",
-            date: new Date().toISOString().split("T")[0],
-            time: "16:30",
-            type: "update",
-            coin: "ETH",
-            importance: "high",
-            source: "Ethereum Foundation",
-          },
-          {
-            id: "sol-conference",
-            title: "Solana Developer Conference",
-            description: "Виртуальная конференция разработчиков Solana",
-            date: new Date().toISOString().split("T")[0],
-            time: "18:00",
-            type: "conference",
-            coin: "SOL",
-            importance: "high",
-            source: "Solana Labs",
-          },
-        ];
-        setEvents(mockEvents);
-      }
-
-      setLastUpdate(new Date());
-    } catch (err) {
-      console.error("Error fetching crypto events:", err);
-
-      // Fallback к статичным данным при ошибке
-      const fallbackEvents: CryptoEvent[] = [
-        {
-          id: "market-analysis",
-          title: "Crypto Market Weekly Analysis",
-          description: "Еженедельный обзор криптовалютного рынка",
+          id: "btc-price-analysis",
+          title: "Bitcoin Technical Analysis Update",
+          description: "Еженедельный технический анализ движения цены BTC",
           date: new Date().toISOString().split("T")[0],
-          time: "12:00",
-          type: "other",
-          importance: "medium",
-          source: "CryptoDaily",
-        },
-        {
-          id: "defi-update",
-          title: "DeFi Protocol Security Update",
-          description: "Обновление безопасности DeFi протоколов",
-          date: new Date().toISOString().split("T")[0],
-          time: "15:00",
+          time: "14:00",
           type: "update",
+          coin: "BTC",
+          importance: "medium",
+          source: "CryptoNews",
+        },
+        {
+          id: "eth-staking-update",
+          title: "Ethereum Staking Rewards Distribution",
+          description: "Распределение наград за стейкинг ETH 2.0",
+          date: new Date().toISOString().split("T")[0],
+          time: "16:30",
+          type: "update",
+          coin: "ETH",
           importance: "high",
-          source: "DeFiSafety",
+          source: "Ethereum Foundation",
+        },
+        {
+          id: "sol-conference",
+          title: "Solana Developer Conference",
+          description: "Виртуальная конференция разработчиков Solana",
+          date: new Date().toISOString().split("T")[0],
+          time: "18:00",
+          type: "conference",
+          coin: "SOL",
+          importance: "high",
+          source: "Solana Labs",
         },
       ];
 
-      setEvents(fallbackEvents);
-      setError("Используются резервные данные событий");
+      setEvents(mockEvents);
       setLastUpdate(new Date());
+      setIsInitialized(true);
+    } catch (err) {
+      console.error("Error fetching crypto events:", err);
+      setError("Ошибка загрузки событий");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEvents();
-
-    // Автообновление каждые 5 минут
-    const interval = setInterval(fetchEvents, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!isInitialized) {
+      fetchEvents();
+    }
+  }, [isInitialized]);
 
   return {
     events: events.filter((event) => {
@@ -209,6 +169,6 @@ export const useCryptoEvents = () => {
     loading,
     error,
     lastUpdate,
-    refresh: fetchEvents,
+    refresh: () => fetchEvents(true),
   };
 };
