@@ -1,26 +1,21 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
-import { useAuth } from "@/hooks/useAuth";
 import CryptoPrices from "@/components/CryptoPrices";
 import ChartsAnalytics from "@/components/ChartsAnalytics";
 import News from "@/components/News";
 import TradingTools from "@/components/TradingTools";
 import Contact from "@/components/Contact";
-import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const [userName] = useState(localStorage.getItem("user_name") || "Трейдер");
 
-  const handleLogout = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast.error("Ошибка при выходе");
-    } else {
-      toast.success("Вы вышли из системы");
-      navigate("/");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_name");
+    navigate("/");
   };
 
   return (
@@ -39,7 +34,7 @@ const Dashboard = () => {
                 Личный кабинет
               </h1>
               <p className="text-sm text-muted-foreground">
-                Добро пожаловать, {user?.user_metadata?.name || user?.email}!
+                Добро пожаловать, {userName}!
               </p>
             </div>
           </div>
