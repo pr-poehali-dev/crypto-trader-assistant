@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
+import CryptoChart from "@/components/CryptoChart";
 
 const ChartsAnalytics = () => {
-  const [selectedCoin, setSelectedCoin] = useState("BTC");
+  const [selectedCoin, setSelectedCoin] = useState("bitcoin");
   const [timeframe, setTimeframe] = useState("1d");
 
-  const coins = ["BTC", "ETH", "SOL", "ADA", "BNB"];
+  const coins = [
+    { id: "bitcoin", symbol: "BTC" },
+    { id: "ethereum", symbol: "ETH" },
+    { id: "solana", symbol: "SOL" },
+    { id: "cardano", symbol: "ADA" },
+    { id: "binancecoin", symbol: "BNB" },
+  ];
   const timeframes = [
     { value: "1h", label: "1 час" },
     { value: "1d", label: "1 день" },
@@ -38,12 +45,12 @@ const ChartsAnalytics = () => {
                 <div className="flex gap-2">
                   {coins.map((coin) => (
                     <Button
-                      key={coin}
-                      onClick={() => setSelectedCoin(coin)}
-                      variant={selectedCoin === coin ? "default" : "outline"}
+                      key={coin.id}
+                      onClick={() => setSelectedCoin(coin.id)}
+                      variant={selectedCoin === coin.id ? "default" : "outline"}
                       size="sm"
                     >
-                      {coin}
+                      {coin.symbol}
                     </Button>
                   ))}
                 </div>
@@ -62,50 +69,15 @@ const ChartsAnalytics = () => {
                 </div>
               </div>
 
-              {/* Mock Chart Area */}
-              <div className="h-80 bg-gradient-to-br from-crypto-card/50 to-crypto-dark/50 rounded-lg p-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-crypto-neon-blue/10 to-crypto-neon-green/10"></div>
-                <div className="relative z-10 h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <Icon
-                      name="BarChart3"
-                      size={48}
-                      className="text-crypto-neon-blue mx-auto mb-4"
-                    />
-                    <p className="text-muted-foreground">
-                      График {selectedCoin} -{" "}
-                      {timeframes.find((tf) => tf.value === timeframe)?.label}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Интерактивный график будет здесь
-                    </p>
-                  </div>
-                </div>
-
-                {/* Mock price line */}
-                <svg
-                  className="absolute inset-0 w-full h-full"
-                  viewBox="0 0 400 200"
-                >
-                  <polyline
-                    fill="none"
-                    stroke="url(#gradient)"
-                    strokeWidth="2"
-                    points="20,150 60,120 100,140 140,100 180,110 220,80 260,90 300,60 340,70 380,50"
-                  />
-                  <defs>
-                    <linearGradient
-                      id="gradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
-                      <stop offset="0%" stopColor="#00d4ff" />
-                      <stop offset="100%" stopColor="#00ff88" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+              {/* Реальный график */}
+              <div className="bg-gradient-to-br from-crypto-card/50 to-crypto-dark/50 rounded-lg p-4">
+                <CryptoChart
+                  coinId={selectedCoin}
+                  symbol={
+                    coins.find((c) => c.id === selectedCoin)?.symbol || "BTC"
+                  }
+                  timeframe={timeframe}
+                />
               </div>
             </div>
           </div>
