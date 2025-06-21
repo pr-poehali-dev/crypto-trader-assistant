@@ -3,50 +3,50 @@ import Icon from "@/components/ui/icon";
 const Advantages = () => {
   const advantages = [
     {
-      icon: "Code",
-      title: "Без программирования",
+      icon: "BarChart3",
+      title: "Профессиональная аналитика",
       description:
-        "Создавайте сайты без знания HTML, CSS или JavaScript. Просто опишите что хотите получить.",
+        "Глубокий анализ рынка с использованием технических индикаторов, объемов и паттернов цены.",
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
     },
     {
-      icon: "Rocket",
-      title: "Быстрый старт",
+      icon: "Zap",
+      title: "Мгновенное исполнение",
       description:
-        "От идеи до готового сайта за минуты. Никаких долгих настроек и установок программ.",
+        "Быстрое исполнение ордеров за миллисекунды. Не упустите выгодные возможности рынка.",
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-500/10",
+    },
+    {
+      icon: "Target",
+      title: "Точные прогнозы",
+      description:
+        "AI-модели обучены на исторических данных для предсказания движений цен с высокой точностью.",
       color: "text-green-500",
       bgColor: "bg-green-500/10",
     },
     {
-      icon: "Palette",
-      title: "Современный дизайн",
+      icon: "Clock",
+      title: "Торговля 24/7",
       description:
-        "Получайте красивые сайты с актуальным дизайном, анимациями и адаптивной версткой.",
+        "Бот работает круглосуточно, отслеживая рынок и выполняя сделки даже пока вы спите.",
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
     },
     {
-      icon: "Github",
-      title: "Интеграция с GitHub",
+      icon: "PieChart",
+      title: "Диверсификация портфеля",
       description:
-        "Автоматическая синхронизация с репозиторием. Получите полный доступ к коду проекта.",
+        "Автоматическое распределение средств между различными активами для снижения рисков.",
       color: "text-orange-500",
       bgColor: "bg-orange-500/10",
     },
     {
-      icon: "Wrench",
-      title: "Исправление ошибок",
+      icon: "Smartphone",
+      title: "Мобильное приложение",
       description:
-        "Юра автоматически анализирует и исправляет баги в коде. Ваш сайт всегда работает стабильно.",
-      color: "text-red-500",
-      bgColor: "bg-red-500/10",
-    },
-    {
-      icon: "Users",
-      title: "Поддержка сообщества",
-      description:
-        "Активное комьюнити разработчиков готово помочь с любыми вопросами и идеями.",
+        "Контролируйте торговлю на ходу с удобным мобильным приложением и push-уведомлениями.",
       color: "text-cyan-500",
       bgColor: "bg-cyan-500/10",
     },
@@ -56,12 +56,12 @@ const Advantages = () => {
     <section className="py-20 bg-gradient-to-b from-muted/50 to-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-500 to-blue-600 bg-clip-text text-transparent">
-            Наши преимущества
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
+            Преимущества CryptoTrader
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Поехали! объединяет лучшие инструменты и подходы для создания сайтов
-            в единой платформе, доступной каждому.
+            Современные технологии и профессиональные инструменты для успешной
+            торговли криптовалютами на любом уровне опыта.
           </p>
         </div>
 
