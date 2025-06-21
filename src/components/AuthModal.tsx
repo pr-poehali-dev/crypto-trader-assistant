@@ -13,9 +13,10 @@ import Icon from "@/components/ui/icon";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLogin?: () => void;
 }
 
-const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -25,8 +26,16 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication logic
-    console.log(isLogin ? "Login" : "Register", formData);
+
+    // Симуляция успешной аутентификации
+    const token = "demo_token_" + Date.now();
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem(
+      "user_name",
+      formData.name || formData.email.split("@")[0],
+    );
+
+    onLogin?.();
     onClose();
   };
 
