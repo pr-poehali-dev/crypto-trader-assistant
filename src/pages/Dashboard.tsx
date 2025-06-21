@@ -39,14 +39,25 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="border-crypto-neon-blue/30 hover:bg-crypto-neon-blue/10"
-          >
-            <Icon name="LogOut" className="mr-2" size={18} />
-            Выйти
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => navigate("/profile")}
+              variant="outline"
+              className="border-crypto-neon-green/30 hover:bg-crypto-neon-green/10"
+            >
+              <Icon name="User" className="mr-2" size={18} />
+              Профиль
+            </Button>
+
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="border-crypto-neon-blue/30 hover:bg-crypto-neon-blue/10"
+            >
+              <Icon name="LogOut" className="mr-2" size={18} />
+              Выйти
+            </Button>
+          </div>
         </div>
       </header>
 
