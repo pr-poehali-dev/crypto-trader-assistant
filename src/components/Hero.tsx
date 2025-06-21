@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 
-const Hero = () => {
-  const scrollToSection = () => {
-    const element = document.getElementById("crypto-prices");
-    element?.scrollIntoView({ behavior: "smooth" });
-  };
+interface HeroProps {
+  onAuthClick: () => void;
+}
 
+const Hero = ({ onAuthClick }: HeroProps) => {
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background Effects */}
@@ -30,7 +29,7 @@ const Hero = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
-              onClick={scrollToSection}
+              onClick={onAuthClick}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-3 animate-pulse-neon"
             >
