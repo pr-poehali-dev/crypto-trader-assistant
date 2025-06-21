@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { useCryptoEvents } from "@/hooks/useCryptoEvents";
+import { useEffect } from "react";
 
 interface CryptoEvent {
   id: string;
@@ -15,70 +16,14 @@ interface CryptoEvent {
 const News = () => {
   const { events, loading, error, lastUpdate, refresh } = useCryptoEvents();
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      // Симуляция API вызова - заменить на реальный API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const mockEvents: CryptoEvent[] = [
-        {
-          id: "1",
-          title: "Bitcoin Conference 2024",
-          description:
-            "Крупнейшая конференция по Bitcoin с участием ведущих экспертов",
-          coin: "BTC",
-          time: "14:00",
-          source: "Bitcoin.org",
-          type: "conference",
-          importance: "high",
-        },
-        {
-          id: "2",
-          title: "Ethereum Network Upgrade",
-          description:
-            "Обновление сети Ethereum для улучшения производительности",
-          coin: "ETH",
-          time: "18:30",
-          source: "Ethereum Foundation",
-          type: "upgrade",
-          importance: "high",
-        },
-        {
-          id: "3",
-          title: "Solana Token Unlock",
-          description:
-            "Разблокировка 25M токенов SOL для инвесторов раннего этапа",
-          coin: "SOL",
-          time: "12:00",
-          source: "Solana Labs",
-          type: "unlock",
-          importance: "medium",
-        },
-      ];
-
-      setEvents(mockEvents);
-      setLastUpdate(new Date());
-    } catch (error) {
-      console.error("Ошибка загрузки событий:", error);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refresh = () => {
-    fetchEvents();
-  };
-
   useEffect(() => {
-    fetchEvents();
+    refresh();
 
     // Автоматическое обновление каждые 5 минут
-    const interval = setInterval(fetchEvents, 5 * 60 * 1000);
+    const interval = setInterval(refresh, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refresh]);
 
   const news = [
     {
