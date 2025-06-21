@@ -1,4 +1,5 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
 
 interface ProtectedRouteProps {
@@ -6,31 +7,20 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setShowAuthModal(true);
-    }
-  }, []);
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    setShowAuthModal(false);
-  };
-
-  if (!isAuthenticated) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onLogin={handleLogin}
-        />
+        <div className="animate-spin text-4xl">🚀</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <AuthModal isOpen={true} onClose={() => {}} onLogin={() => {}} />
       </div>
     );
   }

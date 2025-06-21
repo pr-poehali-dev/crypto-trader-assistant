@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,29 +21,44 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     name: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Симуляция успешной аутентификации
-    const token = "demo_token_" + Date.now();
-    localStorage.setItem("auth_token", token);
-    localStorage.setItem(
-      "user_name",
-      formData.name || formData.email.split("@")[0],
-    );
+    try {
+      if (isLogin) {
+        const { error } = await signIn(formData.email, formData.password);
+        if (error) throw error;
+        toast.success("Успешный вход!");
+      } else {
+        const { error } = await signUp(
+          formData.email,
+          formData.password,
+          formData.name,
+        );
+        if (error) throw error;
+        toast.success(
+          "Регистрация успешна! Проверьте email для подтверждения.",
+        );
+      }
 
-    onLogin?.();
-    onClose();
-
-    // Перенаправление в личный кабинет
-    navigate("/dashboard");
+      onLogin?.();
+      onClose();
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Произошла ошибка");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -97,10 +114,18 @@ const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
 
           <Button
             type="submit"
+            disabled={loading}
             className="w-full bg-primary hover:bg-primary/90 animate-pulse-neon"
           >
-            <Icon name="LogIn" className="mr-2" />
-            {isLogin ? "Войти" : "Зарегистрироваться"}
+            <Icon
+              name={loading ? "Loader2" : "LogIn"}
+              className={`mr-2 ${loading ? "animate-spin" : ""}`}
+            />
+            {loading
+              ? "Обработка..."
+              : isLogin
+                ? "Войти"
+                : "Зарегистрироваться"}
           </Button>
         </form>
 
