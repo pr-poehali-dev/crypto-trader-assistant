@@ -25,11 +25,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!isAuthenticated) {
     return (
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={handleLogin}
-      />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onLogin={handleLogin}
+        />
+      </div>
     );
   }
 
