@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -37,6 +39,9 @@ const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
 
     onLogin?.();
     onClose();
+
+    // Перенаправление в личный кабинет
+    navigate("/dashboard");
   };
 
   const handleInputChange = (field: string, value: string) => {
