@@ -1,12 +1,19 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Hero from "@/components/Hero";
+import CryptoPrices from "@/components/CryptoPrices";
+import ChartsAnalytics from "@/components/ChartsAnalytics";
+import News from "@/components/News";
+import TradingTools from "@/components/TradingTools";
+import Contact from "@/components/Contact";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Hero />
+      <CryptoPrices />
+      <ChartsAnalytics />
+      <News />
+      <TradingTools />
+      <Contact />
     </div>
   );
 };
