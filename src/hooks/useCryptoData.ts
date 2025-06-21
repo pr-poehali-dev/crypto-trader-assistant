@@ -303,28 +303,3 @@ export const useCryptoData = (coinId: string, timeframe: string) => {
 
   return { priceData, coinInfo, loading, error };
 };
-
-// Функция для генерации fallback данных для одной монеты
-const generateFallbackCoin = (coinId: string, symbol: string): CoinData => {
-  const basePrices: Record<string, number> = {
-    bitcoin: 43500,
-    ethereum: 2650,
-    solana: 98,
-    cardano: 0.48,
-    binancecoin: 620,
-  };
-
-  const basePrice = basePrices[coinId] || 100;
-  const variation = (Math.random() - 0.5) * 0.1;
-  const currentPrice = basePrice * (1 + variation);
-
-  return {
-    id: coinId,
-    name: COIN_NAMES[coinId] || symbol.replace("USDT", ""),
-    symbol: symbol.replace("USDT", ""),
-    current_price: currentPrice,
-    price_change_percentage_24h: (Math.random() - 0.5) * 10,
-    market_cap: currentPrice * 21000000,
-    total_volume: currentPrice * 500000,
-  };
-};
