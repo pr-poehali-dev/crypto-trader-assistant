@@ -68,13 +68,27 @@ const CryptoChart = ({ coinId, symbol, timeframe }: CryptoChartProps) => {
   if (error) {
     return (
       <div className="h-80 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center space-y-3">
           <Icon
-            name="AlertCircle"
-            size={32}
-            className="text-red-500 mx-auto mb-2"
+            name="WifiOff"
+            size={48}
+            className="text-crypto-neon-blue/60 mx-auto"
           />
-          <p className="text-muted-foreground">{error}</p>
+          <div>
+            <p className="text-lg font-medium text-foreground mb-1">
+              Проблема с подключением
+            </p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="border-crypto-neon-blue/30 hover:bg-crypto-neon-blue/10"
+          >
+            <Icon name="RefreshCw" size={16} className="mr-2" />
+            Попробовать снова
+          </Button>
         </div>
       </div>
     );
