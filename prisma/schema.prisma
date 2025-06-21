@@ -1,0 +1,54 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  watchlists Watchlist[]
+  trades     Trade[]
+
+  @@map("users")
+}
+
+model Watchlist {
+  id       String @id @default(cuid())
+  userId   String @map("user_id")
+  coinId   String @map("coin_id")
+  coinName String @map("coin_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("watchlists")
+}
+
+model Trade {
+  id     String    @id @default(cuid())
+  userId String    @map("user_id")
+  coinId String    @map("coin_id")
+  type   TradeType
+  amount Float
+  price  Float
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("trades")
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
