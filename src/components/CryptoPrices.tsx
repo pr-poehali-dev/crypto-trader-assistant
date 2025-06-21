@@ -1,86 +1,45 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
+import { useCryptoList } from "@/hooks/useCryptoData";
 
 const CryptoPrices = () => {
   const [showMore, setShowMore] = useState(false);
+  const { coins, loading, error } = useCryptoList(10);
 
-  // Mock data - в реальном проекте здесь будет API
-  const mainCoins = [
-    {
-      symbol: "BTC",
-      name: "Bitcoin",
-      price: "$42,350",
-      change: "+2.45%",
-      isUp: true,
-    },
-    {
-      symbol: "ETH",
-      name: "Ethereum",
-      price: "$2,580",
-      change: "+1.82%",
-      isUp: true,
-    },
-    {
-      symbol: "USDT",
-      name: "Tether",
-      price: "$1.00",
-      change: "+0.01%",
-      isUp: true,
-    },
-    {
-      symbol: "BNB",
-      name: "BNB",
-      price: "$315",
-      change: "-0.85%",
-      isUp: false,
-    },
-    {
-      symbol: "SOL",
-      name: "Solana",
-      price: "$98.50",
-      change: "+5.23%",
-      isUp: true,
-    },
+  // Основные монеты для отображения
+  const mainCoinIds = [
+    "bitcoin",
+    "ethereum",
+    "binancecoin",
+    "solana",
+    "cardano",
   ];
+  const mainCoins = coins.filter((coin) => mainCoinIds.includes(coin.id));
+  const additionalCoins = coins.filter(
+    (coin) => !mainCoinIds.includes(coin.id),
+  );
 
-  const additionalCoins = [
-    {
-      symbol: "ADA",
-      name: "Cardano",
-      price: "$0.52",
-      change: "+3.12%",
-      isUp: true,
-    },
-    {
-      symbol: "AVAX",
-      name: "Avalanche",
-      price: "$36.80",
-      change: "+1.95%",
-      isUp: true,
-    },
-    {
-      symbol: "DOT",
-      name: "Polkadot",
-      price: "$7.45",
-      change: "-2.18%",
-      isUp: false,
-    },
-    {
-      symbol: "MATIC",
-      name: "Polygon",
-      price: "$0.89",
-      change: "+4.67%",
-      isUp: true,
-    },
-    {
-      symbol: "LINK",
-      name: "Chainlink",
-      price: "$14.20",
-      change: "+2.88%",
-      isUp: true,
-    },
-  ];
+  if (loading) {
+    return (
+      <section id="crypto-prices" className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="glass-card p-8">
+            <div className="flex items-center justify-center h-40">
+              <div className="text-center">
+                <Icon
+                  name="Loader2"
+                  size={32}
+                  className="animate-spin text-crypto-neon-blue mx-auto mb-2"
+                />
+                <p className="text-muted-foreground">Загрузка курсов...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="crypto-prices" className="py-20">
@@ -92,9 +51,22 @@ const CryptoPrices = () => {
             </h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="w-2 h-2 bg-crypto-neon-green rounded-full animate-pulse"></div>
-              Обновление в реальном времени
+              Данные Bybit API
             </div>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="flex items-center">
+                <Icon
+                  name="AlertTriangle"
+                  className="text-yellow-500 mr-2"
+                  size={16}
+                />
+                <span className="text-sm">{error}</span>
+              </div>
+            </div>
+          )}
 
           {/* Main Coins */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -106,27 +78,40 @@ const CryptoPrices = () => {
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-lg">{coin.symbol}</span>
                   <Icon
-                    name={coin.isUp ? "TrendingUp" : "TrendingDown"}
+                    name={
+                      coin.price_change_percentage_24h >= 0
+                        ? "TrendingUp"
+                        : "TrendingDown"
+                    }
                     className={
-                      coin.isUp ? "text-crypto-neon-green" : "text-destructive"
+                      coin.price_change_percentage_24h >= 0
+                        ? "text-crypto-neon-green"
+                        : "text-destructive"
                     }
                   />
                 </div>
                 <div className="text-sm text-muted-foreground mb-1">
                   {coin.name}
                 </div>
-                <div className="font-semibold text-lg">{coin.price}</div>
+                <div className="font-semibold text-lg">
+                  ${coin.current_price.toLocaleString()}
+                </div>
                 <div
-                  className={`text-sm font-medium ${coin.isUp ? "text-crypto-neon-green" : "text-destructive"}`}
+                  className={`text-sm font-medium ${
+                    coin.price_change_percentage_24h >= 0
+                      ? "text-crypto-neon-green"
+                      : "text-destructive"
+                  }`}
                 >
-                  {coin.change}
+                  {coin.price_change_percentage_24h >= 0 ? "+" : ""}
+                  {coin.price_change_percentage_24h.toFixed(2)}%
                 </div>
               </div>
             ))}
           </div>
 
           {/* Additional Coins (Show More) */}
-          {showMore && (
+          {showMore && additionalCoins.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 animate-fade-in">
               {additionalCoins.map((coin) => (
                 <div
@@ -136,9 +121,13 @@ const CryptoPrices = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-lg">{coin.symbol}</span>
                     <Icon
-                      name={coin.isUp ? "TrendingUp" : "TrendingDown"}
+                      name={
+                        coin.price_change_percentage_24h >= 0
+                          ? "TrendingUp"
+                          : "TrendingDown"
+                      }
                       className={
-                        coin.isUp
+                        coin.price_change_percentage_24h >= 0
                           ? "text-crypto-neon-green"
                           : "text-destructive"
                       }
@@ -147,11 +136,18 @@ const CryptoPrices = () => {
                   <div className="text-sm text-muted-foreground mb-1">
                     {coin.name}
                   </div>
-                  <div className="font-semibold text-lg">{coin.price}</div>
+                  <div className="font-semibold text-lg">
+                    ${coin.current_price.toLocaleString()}
+                  </div>
                   <div
-                    className={`text-sm font-medium ${coin.isUp ? "text-crypto-neon-green" : "text-destructive"}`}
+                    className={`text-sm font-medium ${
+                      coin.price_change_percentage_24h >= 0
+                        ? "text-crypto-neon-green"
+                        : "text-destructive"
+                    }`}
                   >
-                    {coin.change}
+                    {coin.price_change_percentage_24h >= 0 ? "+" : ""}
+                    {coin.price_change_percentage_24h.toFixed(2)}%
                   </div>
                 </div>
               ))}
@@ -159,19 +155,21 @@ const CryptoPrices = () => {
           )}
 
           {/* Show More Button */}
-          <div className="text-center">
-            <Button
-              onClick={() => setShowMore(!showMore)}
-              variant="outline"
-              className="border-crypto-neon-blue text-crypto-neon-blue hover:bg-crypto-neon-blue/10"
-            >
-              <Icon
-                name={showMore ? "ChevronUp" : "ChevronDown"}
-                className="mr-2"
-              />
-              {showMore ? "Показать меньше" : "Показать больше"}
-            </Button>
-          </div>
+          {additionalCoins.length > 0 && (
+            <div className="text-center">
+              <Button
+                onClick={() => setShowMore(!showMore)}
+                variant="outline"
+                className="border-crypto-neon-blue text-crypto-neon-blue hover:bg-crypto-neon-blue/10"
+              >
+                <Icon
+                  name={showMore ? "ChevronUp" : "ChevronDown"}
+                  className="mr-2"
+                />
+                {showMore ? "Показать меньше" : "Показать больше"}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -16,16 +16,24 @@ interface CoinData {
   total_volume: number;
 }
 
-// Маппинг для CoinGecko API
-const COIN_MAPPING: Record<string, string> = {
-  bitcoin: "bitcoin",
-  ethereum: "ethereum",
-  solana: "solana",
-  cardano: "cardano",
-  binancecoin: "binancecoin",
+// Маппинг символов для Bybit API
+const BYBIT_SYMBOLS: Record<string, string> = {
+  bitcoin: "BTCUSDT",
+  ethereum: "ETHUSDT",
+  solana: "SOLUSDT",
+  cardano: "ADAUSDT",
+  binancecoin: "BNBUSDT",
 };
 
-// Хук для получения списка топ криптовалют
+const COIN_NAMES: Record<string, string> = {
+  bitcoin: "Bitcoin",
+  ethereum: "Ethereum",
+  solana: "Solana",
+  cardano: "Cardano",
+  binancecoin: "Binance Coin",
+};
+
+// Хук для получения списка топ криптовалют через Bybit
 export const useCryptoList = (limit: number = 100) => {
   const [coins, setCoins] = useState<CoinData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,24 +45,39 @@ export const useCryptoList = (limit: number = 100) => {
       setError(null);
 
       try {
+        // Получаем тикеры для основных криптовалют
+        const symbols = Object.values(BYBIT_SYMBOLS);
         const response = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-          },
+          `https://api.bybit.com/v5/market/tickers?category=spot&symbol=${symbols.join(",")}`,
         );
 
-        const formattedCoins: CoinData[] = response.data.map((coin: any) => ({
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol.toUpperCase(),
-          current_price: coin.current_price,
-          price_change_percentage_24h: coin.price_change_percentage_24h || 0,
-          market_cap: coin.market_cap || 0,
-          total_volume: coin.total_volume || 0,
-        }));
+        if (response.data.retCode !== 0) {
+          throw new Error("Ошибка API Bybit");
+        }
+
+        const formattedCoins: CoinData[] = response.data.result.list.map(
+          (ticker: any) => {
+            const coinId =
+              Object.keys(BYBIT_SYMBOLS).find(
+                (key) => BYBIT_SYMBOLS[key] === ticker.symbol,
+              ) || "unknown";
+
+            const symbol = ticker.symbol.replace("USDT", "");
+
+            return {
+              id: coinId,
+              name: COIN_NAMES[coinId] || symbol,
+              symbol: symbol,
+              current_price: parseFloat(ticker.lastPrice),
+              price_change_percentage_24h:
+                parseFloat(ticker.price24hPcnt) * 100,
+              market_cap:
+                parseFloat(ticker.lastPrice) *
+                parseFloat(ticker.volume24h || "0"),
+              total_volume: parseFloat(ticker.volume24h || "0"),
+            };
+          },
+        );
 
         setCoins(formattedCoins);
       } catch (err) {
@@ -75,13 +98,109 @@ export const useCryptoList = (limit: number = 100) => {
   return { coins, loading, error };
 };
 
-// Хук для получения исторических данных и live цены
+// Хук для получения исторических данных и live цены через Bybit
 export const useCryptoData = (coinId: string, timeframe: string) => {
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [coinInfo, setCoinInfo] = useState<CoinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const symbol = BYBIT_SYMBOLS[coinId];
+        if (!symbol) {
+          throw new Error("Неподдерживаемая криптовалюта");
+        }
+
+        // Получаем текущие данные тикера
+        const tickerResponse = await axios.get(
+          `https://api.bybit.com/v5/market/tickers?category=spot&symbol=${symbol}`,
+        );
+
+        if (
+          tickerResponse.data.retCode !== 0 ||
+          !tickerResponse.data.result.list[0]
+        ) {
+          throw new Error("Ошибка получения данных тикера");
+        }
+
+        const ticker = tickerResponse.data.result.list[0];
+
+        const coinData: CoinData = {
+          id: coinId,
+          name: COIN_NAMES[coinId] || symbol.replace("USDT", ""),
+          symbol: symbol.replace("USDT", ""),
+          current_price: parseFloat(ticker.lastPrice),
+          price_change_percentage_24h: parseFloat(ticker.price24hPcnt) * 100,
+          market_cap:
+            parseFloat(ticker.lastPrice) * parseFloat(ticker.volume24h || "0"),
+          total_volume: parseFloat(ticker.volume24h || "0"),
+        };
+
+        setCoinInfo(coinData);
+
+        // Получаем исторические данные для графика
+        const intervals: Record<string, string> = {
+          "1h": "1", // 1 минута для часового графика
+          "1d": "60", // 1 час для дневного графика
+          "1w": "D", // 1 день для недельного графика
+          "1m": "D", // 1 день для месячного графика
+        };
+
+        const interval = intervals[timeframe] || "60";
+        const limit =
+          timeframe === "1h"
+            ? 60
+            : timeframe === "1d"
+              ? 24
+              : timeframe === "1w"
+                ? 7
+                : 30;
+
+        const klineResponse = await axios.get(
+          `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${interval}&limit=${limit}`,
+        );
+
+        if (klineResponse.data.retCode !== 0) {
+          throw new Error("Ошибка получения исторических данных");
+        }
+
+        const klines = klineResponse.data.result.list || [];
+
+        const formattedPriceData: PriceData[] = klines
+          .reverse()
+          .map((kline: string[]) => ({
+            timestamp: parseInt(kline[0]),
+            price: parseFloat(kline[4]), // Цена закрытия
+          }));
+
+        setPriceData(formattedPriceData);
+      } catch (err: any) {
+        console.error("Error fetching Bybit data:", err);
+
+        // Fallback данные при ошибке
+        const symbol = BYBIT_SYMBOLS[coinId]?.replace("USDT", "") || "BTC";
+        const fallback = generateFallbackData(symbol);
+        setPriceData(fallback.priceData);
+        setCoinInfo(fallback.coinInfo);
+        setError("Используются демонстрационные данные");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (coinId) {
+      fetchData();
+
+      // Обновляем данные каждые 30 секунд для live обновлений
+      const interval = setInterval(fetchData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [coinId, timeframe]);
 
   // Fallback данные для демонстрации
   const generateFallbackData = (
@@ -120,16 +239,7 @@ export const useCryptoData = (coinId: string, timeframe: string) => {
 
     const coinInfo: CoinData = {
       id: coinId,
-      name:
-        symbol === "BTC"
-          ? "Bitcoin"
-          : symbol === "ETH"
-            ? "Ethereum"
-            : symbol === "SOL"
-              ? "Solana"
-              : symbol === "ADA"
-                ? "Cardano"
-                : "Binance Coin",
+      name: COIN_NAMES[coinId] || symbol,
       symbol,
       current_price: basePrice,
       price_change_percentage_24h: (Math.random() - 0.5) * 10,
@@ -139,132 +249,6 @@ export const useCryptoData = (coinId: string, timeframe: string) => {
 
     return { priceData, coinInfo };
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (retryCount === 0) {
-        setLoading(true);
-      }
-      setError(null);
-
-      try {
-        const geckoId = COIN_MAPPING[coinId] || coinId;
-
-        // Получаем актуальную цену и основную информацию
-        const currentDataResponse = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${geckoId}&order=market_cap_desc&per_page=1&page=1&sparkline=false&price_change_percentage=24h`,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-            timeout: 10000, // 10 секунд таймаут
-          },
-        );
-
-        if (
-          !currentDataResponse.data ||
-          currentDataResponse.data.length === 0
-        ) {
-          throw new Error("Криптовалюта не найдена");
-        }
-
-        const coin = currentDataResponse.data[0];
-
-        const coinData: CoinData = {
-          id: coin.id,
-          name: coin.name,
-          symbol: coin.symbol.toUpperCase(),
-          current_price: coin.current_price,
-          price_change_percentage_24h: coin.price_change_percentage_24h || 0,
-          market_cap: coin.market_cap || 0,
-          total_volume: coin.total_volume || 0,
-        };
-
-        setCoinInfo(coinData);
-
-        // Получаем исторические данные для графика
-        const days =
-          timeframe === "1h"
-            ? 1
-            : timeframe === "1d"
-              ? 1
-              : timeframe === "1w"
-                ? 7
-                : 30;
-
-        const historicalResponse = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart?vs_currency=usd&days=${days}&interval=${timeframe === "1h" ? "hourly" : "daily"}`,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-            timeout: 10000,
-          },
-        );
-
-        let chartData = historicalResponse.data.prices || [];
-
-        // Фильтруем данные в зависимости от временного интервала
-        if (timeframe === "1h") {
-          // Берем последние 24 точки (последние 24 часа)
-          chartData = chartData.slice(-24);
-        } else if (timeframe === "1d") {
-          // Берем последние 24 точки (последние 24 часа по часам)
-          chartData = chartData.slice(-24);
-        }
-
-        const formattedPriceData: PriceData[] = chartData.map(
-          ([timestamp, price]: [number, number]) => ({
-            timestamp,
-            price: parseFloat(price.toFixed(6)),
-          }),
-        );
-
-        setPriceData(formattedPriceData);
-        setRetryCount(0); // Сбрасываем счётчик попыток при успехе
-      } catch (err: any) {
-        console.error("Error fetching crypto data:", err);
-
-        // Используем fallback данные вместо показа ошибки
-        if (retryCount < 2) {
-          console.log(
-            `Попытка ${retryCount + 1} не удалась, используем демо данные`,
-          );
-          const symbol = coins.find((c) => c.id === coinId)?.symbol || "BTC";
-          const fallback = generateFallbackData(symbol);
-          setPriceData(fallback.priceData);
-          setCoinInfo(fallback.coinInfo);
-          setRetryCount(retryCount + 1);
-        } else {
-          let errorMessage = "Используются демонстрационные данные";
-
-          const symbol = coins.find((c) => c.id === coinId)?.symbol || "BTC";
-          const fallback = generateFallbackData(symbol);
-          setPriceData(fallback.priceData);
-          setCoinInfo(fallback.coinInfo);
-          setError(null); // Не показываем ошибку, используем fallback
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (coinId) {
-      fetchData();
-
-      // Обновляем данные каждые 60 секунд для live обновлений
-      const interval = setInterval(fetchData, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [coinId, timeframe, retryCount]);
-
-  const coins = [
-    { id: "bitcoin", symbol: "BTC" },
-    { id: "ethereum", symbol: "ETH" },
-    { id: "solana", symbol: "SOL" },
-    { id: "cardano", symbol: "ADA" },
-    { id: "binancecoin", symbol: "BNB" },
-  ];
 
   return { priceData, coinInfo, loading, error };
 };
