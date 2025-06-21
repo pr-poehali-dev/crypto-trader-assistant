@@ -1,13 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL || "https://demo.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "demo-key";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Отсутствуют переменные окружения для Supabase");
-}
-
+// Создаем клиент с demo значениями если переменные не заданы
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Проверяем доступность Supabase
+export const isSupabaseConfigured = !!(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 // Типы для базы данных
 export interface Database {

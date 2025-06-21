@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 export const useAuth = () => {
@@ -7,13 +7,25 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Проверяем настройку Supabase
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase не настроен, используется demo режим");
+      setLoading(false);
+      return;
+    }
+
     // Получаем текущую сессию
     const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Ошибка получения сессии:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getSession();
@@ -83,5 +95,6 @@ export const useAuth = () => {
     signUp,
     signIn,
     signOut,
+    isConfigured: isSupabaseConfigured,
   };
 };
