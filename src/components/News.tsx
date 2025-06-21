@@ -1,4 +1,5 @@
 import Icon from "@/components/ui/icon";
+import { useNavigate } from "react-router-dom";
 import { useCryptoEvents } from "@/hooks/useCryptoEvents";
 import { useEffect } from "react";
 
@@ -14,6 +15,7 @@ interface CryptoEvent {
 }
 
 const News = () => {
+  const navigate = useNavigate();
   const { events, loading, error, lastUpdate, refresh } = useCryptoEvents();
 
   useEffect(() => {
@@ -27,6 +29,7 @@ const News = () => {
 
   const news = [
     {
+      id: "bitcoin-maximum",
       title: "Bitcoin достиг нового максимума за год",
       summary:
         "Цена BTC превысила отметку в $45,000 на фоне институционального интереса",
@@ -35,6 +38,7 @@ const News = () => {
       category: "market",
     },
     {
+      id: "ethereum-update",
       title: "Ethereum готовится к следующему обновлению",
       summary: "Разработчики анонсировали дату выхода нового апдейта сети",
       time: "4 часа назад",
@@ -42,6 +46,7 @@ const News = () => {
       category: "tech",
     },
     {
+      id: "defi-funding",
       title: "Новый DeFi протокол привлек $100M",
       summary:
         "Стартап в области децентрализованных финансов завершил раунд инвестиций",
@@ -104,7 +109,8 @@ const News = () => {
               {news.map((item, index) => (
                 <div
                   key={index}
-                  className="p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300"
+                  className="p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer"
+                  onClick={() => navigate(`/news/${item.id}`)}
                 >
                   <div className="flex items-start gap-3">
                     <Icon
@@ -113,7 +119,7 @@ const News = () => {
                       size={20}
                     />
                     <div className="flex-1">
-                      <h4 className="font-semibold mb-1 hover:text-crypto-neon-blue cursor-pointer">
+                      <h4 className="font-semibold mb-1 hover:text-crypto-neon-blue transition-colors">
                         {item.title}
                       </h4>
                       <p className="text-sm text-muted-foreground mb-2">
